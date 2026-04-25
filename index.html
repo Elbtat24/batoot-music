@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="بطوط ميوزك — منصة موسيقى حرة مجانية">
+<title>بطوط ميوزك — استمع لأجمل الأغاني</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/nowplaying.css">
+<style>
+  body { background: var(--background); overflow-x: hidden; }
+  .landing-nav {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 100; width: calc(100% - 48px); max-width: 900px;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 50px; padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 8px 32px rgba(79,70,229,0.1);
+  }
+  .landing-nav-logo {
+    font-size: 20px; font-weight: 800;
+    background: linear-gradient(135deg, #4f46e5, #8455ef);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .landing-hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 24px 120px; text-align: center; position: relative;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px; border-radius: 50px;
+    background: rgba(79,70,229,0.08); border: 1px solid rgba(79,70,229,0.15);
+    color: var(--primary-container); font-size: 13px; font-weight: 600;
+    margin-bottom: 24px; animation: fadeInUp 0.6s ease-out;
+  }
+  .hero-title {
+    font-size: clamp(40px, 8vw, 80px); font-weight: 800;
+    line-height: 1.1; letter-spacing: -0.03em;
+    color: var(--on-surface); margin-bottom: 20px;
+    animation: fadeInUp 0.6s 0.1s ease-out both;
+  }
+  .hero-title .accent {
+    background: linear-gradient(135deg, #4f46e5, #8455ef, #e040fb);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero-sub {
+    font-size: 18px; color: var(--on-surface-variant); max-width: 520px;
+    margin: 0 auto 40px; line-height: 1.7;
+    animation: fadeInUp 0.6s 0.2s ease-out both;
+  }
+  .hero-cta {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    animation: fadeInUp 0.6s 0.3s ease-out both;
+  }
+  .preview-cards {
+    display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+    margin-top: 60px; animation: fadeInUp 0.8s 0.4s ease-out both;
+  }
+  .preview-card {
+    width: 160px; flex-shrink: 0;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.9); border-radius: 16px; padding: 14px;
+    box-shadow: 0 8px 32px rgba(79,70,229,0.1); cursor: pointer; transition: all 0.3s ease;
+  }
+  .preview-card:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(79,70,229,0.18); }
+  .preview-card:nth-child(2) { transform: translateY(-16px); }
+  .preview-card:nth-child(2):hover { transform: translateY(-24px); }
+  .preview-card-thumb { width:100%; aspect-ratio:1; border-radius:12px; overflow:hidden; margin-bottom:10px; background:linear-gradient(135deg,var(--primary-fixed),var(--secondary-fixed)); display:flex;align-items:center;justify-content:center; }
+  .preview-card-thumb img { width:100%; height:100%; object-fit:cover; }
+  .features {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px; padding: 0 24px 80px; max-width: 1000px; margin: 0 auto;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.6); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.8); border-radius: 20px; padding: 28px 24px; text-align: center;
+  }
+  .feature-icon {
+    width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center; font-size: 26px; color: white;
+  }
+  .wave-bars { display:inline-flex; align-items:flex-end; gap:3px; height:20px; padding:0 4px; }
+  .wave-bar { width:3px; background:var(--primary-container); border-radius:2px; animation:wave 1.2s ease-in-out infinite; }
+  .wave-bar:nth-child(2){animation-delay:0.15s}.wave-bar:nth-child(3){animation-delay:0.3s}.wave-bar:nth-child(4){animation-delay:0.45s}
+  @keyframes wave { 0%,100%{height:4px}50%{height:18px} }
+</style>
+</head>
+<body class="liquid-bg">
+<div class="ambient-blobs"></div>
+
+<nav class="landing-nav">
+  <div class="landing-nav-logo">
+    <span class="material-symbols-outlined" style="font-size:22px;-webkit-text-fill-color:initial;color:var(--primary-container);font-variation-settings:'FILL' 1">queue_music</span>
+    <span>بطوط ميوزك</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn-ghost" onclick="window.location.href='pages/search.html'" style="padding:8px 16px;font-size:13px">
+      <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">search</span>
+      بحث
+    </button>
+    <a href="pages/home.html" class="btn-primary" style="padding:10px 22px;font-size:13px">
+      <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">play_circle</span>
+      ابدأ الاستماع
+    </a>
+  </div>
+</nav>
+
+<main>
+  <section class="landing-hero">
+    <div class="hero-badge">
+      <div class="wave-bars">
+        <div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+      موسيقى مجانية — بدون حدود
+    </div>
+    <h1 class="hero-title">
+      استمع لأي أغنية<br>
+      <span class="accent">بدون انقطاع</span>
+    </h1>
+    <p class="hero-sub">
+      بطوط ميوزك — منصة موسيقية حرة مع ملايين الأغاني من حول العالم.
+      اكتشف الجديد، ابني قوائم تشغيلك، واستمع بجودة عالية.
+    </p>
+    <div class="hero-cta">
+      <a href="pages/home.html" class="btn-primary" style="padding:14px 32px;font-size:16px">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_circle</span>
+        ابدأ الاستماع مجاناً
+      </a>
+      <a href="pages/search.html" class="btn-secondary" style="padding:14px 32px;font-size:16px">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">explore</span>
+        استكشف الأغاني
+      </a>
+    </div>
+    <div class="preview-cards" id="preview-cards">
+      <div class="preview-card">
+        <div class="preview-card-thumb"><span class="material-symbols-outlined" style="font-size:32px;color:var(--primary-container);font-variation-settings:'FILL' 1">music_note</span></div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:2px">يتحمل...</div>
+        <div style="font-size:11px;color:var(--outline)">بطوط ميوزك</div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-thumb" style="background:linear-gradient(135deg,var(--secondary-fixed),var(--tertiary-fixed))"><span class="material-symbols-outlined" style="font-size:32px;color:var(--secondary-container);font-variation-settings:'FILL' 1">headphones</span></div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:2px">يتحمل...</div>
+        <div style="font-size:11px;color:var(--outline)">بطوط ميوزك</div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-card-thumb" style="background:linear-gradient(135deg,#e040fb33,#4f46e533)"><span class="material-symbols-outlined" style="font-size:32px;color:#8455ef;font-variation-settings:'FILL' 1">album</span></div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:2px">يتحمل...</div>
+        <div style="font-size:11px;color:var(--outline)">بطوط ميوزك</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:0 0 80px">
+    <div style="text-align:center;margin-bottom:48px;padding:0 24px">
+      <h2 class="text-headline-xl" style="margin-bottom:12px">كل اللي تحتاجه في مكان واحد</h2>
+      <p class="text-body-lg" style="color:var(--on-surface-variant);max-width:480px;margin:0 auto">تجربة موسيقية متكاملة مصممة بعناية</p>
+    </div>
+    <div class="features">
+      <div class="feature-card animate-fade-in-up" style="animation-delay:0.1s">
+        <div class="feature-icon" style="background:linear-gradient(135deg,var(--primary-container),var(--secondary-container))">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">explore</span>
+        </div>
+        <h3 class="text-headline-sm" style="margin-bottom:8px">اكتشف الجديد</h3>
+        <p class="text-body-sm" style="color:var(--on-surface-variant)">ملايين الأغاني من كل الأنواع والثقافات</p>
+      </div>
+      <div class="feature-card animate-fade-in-up" style="animation-delay:0.2s">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#e040fb,#8455ef)">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">queue_music</span>
+        </div>
+        <h3 class="text-headline-sm" style="margin-bottom:8px">قوائم التشغيل</h3>
+        <p class="text-body-sm" style="color:var(--on-surface-variant)">ابني قوائمك الخاصة واحفظ المفضلة</p>
+      </div>
+      <div class="feature-card animate-fade-in-up" style="animation-delay:0.3s">
+        <div class="feature-icon" style="background:linear-gradient(135deg,var(--tertiary-fixed-dim),var(--tertiary-container))">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">high_quality</span>
+        </div>
+        <h3 class="text-headline-sm" style="margin-bottom:8px">جودة عالية</h3>
+        <p class="text-body-sm" style="color:var(--on-surface-variant)">استمع بأعلى جودة بدون انقطاع</p>
+      </div>
+      <div class="feature-card animate-fade-in-up" style="animation-delay:0.4s">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#ff6b35,#e040fb)">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">devices</span>
+        </div>
+        <h3 class="text-headline-sm" style="margin-bottom:8px">على كل جهاز</h3>
+        <p class="text-body-sm" style="color:var(--on-surface-variant)">شغّل من الموبايل أو الكمبيوتر بسهولة</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center;padding:24px;color:var(--outline);font-size:13px;border-top:1px solid rgba(255,255,255,0.5)">
+  <p>بطوط ميوزك &copy; 2025 — مطور بـ ❤️ <span style="font-weight:700;color:var(--primary-container)">ALBTAT</span></p>
+  <p style="margin-top:6px;font-size:11px;opacity:0.7">مدعوم بـ YouTube Data API v3</p>
+</footer>
+
+<script src="js/player.js"></script>
+<script>
+async function loadPreview() {
+  try {
+    const tracks = await BatootApp.getYTTrending();
+    BatootApp.cacheTracks(tracks);
+    const container = document.getElementById('preview-cards');
+    if (!container || !tracks.length) return;
+    container.innerHTML = tracks.slice(0, 4).map((t, i) => `
+      <div class="preview-card" style="animation-delay:${i*0.1}s" onclick="window.location.href='pages/home.html'">
+        <div class="preview-card-thumb">
+          ${t.image ? `<img src="${t.image}" alt="${t.title}" loading="lazy">` : `<span class="material-symbols-outlined" style="font-size:32px;color:var(--primary-container);font-variation-settings:'FILL' 1">music_note</span>`}
+        </div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div>
+        <div style="font-size:11px;color:var(--outline);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.artist}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.log('[Landing] Preview load failed:', e); }
+}
+loadPreview();
+</script>
+</body>
+</html>

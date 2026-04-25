@@ -1,0 +1,197 @@
+/* ============================================================
+   Now Playing Screen
+   ============================================================ */
+
+.now-playing-screen {
+  position: fixed; inset: 0; z-index: 500;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.now-playing-screen.open { transform: translateY(0); }
+
+/* Blurred backdrop from album art */
+.np-backdrop {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #1a0533, #0d1b3e, #050d1a);
+  background-size: cover; background-position: center;
+  filter: blur(60px) brightness(0.35) saturate(1.8);
+  transform: scale(1.2);
+  z-index: 0;
+}
+.np-backdrop::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+}
+
+.np-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  height: 100%; padding: 0 24px 40px;
+  max-width: 480px; margin: 0 auto; width: 100%;
+}
+
+/* Header */
+.np-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 56px 0 24px;
+}
+
+/* Artwork */
+.np-artwork-wrap {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 16px 0;
+}
+.np-artwork-container {
+  width: min(320px, 80vw); height: min(320px, 80vw);
+  border-radius: 24px; overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  background: rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  animation: npArtFloat 6s ease-in-out infinite;
+}
+@keyframes npArtFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.02); }
+}
+.np-artwork-container img { width:100%; height:100%; object-fit:cover; display:block; }
+#np-artwork-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+
+/* Info */
+.np-info { padding-bottom: 8px; }
+
+.np-title-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px; gap: 12px;
+}
+.np-titles { min-width: 0; flex: 1; }
+.np-title {
+  font-size: 24px; font-weight: 800; color: white;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.np-artist {
+  font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 500;
+}
+.np-album {
+  font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.np-like-btn { color: white; flex-shrink: 0; }
+.np-like-btn.liked .material-symbols-outlined { color: #e040fb; }
+
+/* Progress */
+.np-progress { margin-bottom: 28px; }
+.np-progress-bar {
+  width: 100%; height: 4px;
+  background: rgba(255,255,255,0.2); border-radius: 99px;
+  cursor: pointer; margin-bottom: 8px;
+  transition: height 0.2s;
+}
+.np-progress-bar:hover { height: 6px; }
+.np-progress-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, #8455ef, #e040fb);
+  transition: width 0.1s linear; position: relative;
+}
+.np-progress-fill::after {
+  content: ''; position: absolute; right: -6px; top: 50%;
+  transform: translateY(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: white; opacity: 0; transition: opacity 0.2s;
+}
+.np-progress-bar:hover .np-progress-fill::after { opacity: 1; }
+.np-times {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600;
+}
+
+/* Controls */
+.np-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+}
+.np-ctrl-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  color: rgba(255,255,255,0.8); transition: all 0.2s ease;
+  font-size: 28px;
+}
+.np-ctrl-btn:hover { color: white; transform: scale(1.1); }
+.np-ctrl-btn.active { color: #e040fb; }
+.np-play-main {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, #4f46e5, #8455ef, #e040fb);
+  color: white !important; font-size: 36px;
+  box-shadow: 0 8px 32px rgba(132,85,239,0.5);
+}
+.np-play-main:hover { transform: scale(1.08) !important; box-shadow: 0 12px 40px rgba(132,85,239,0.6); }
+.np-play-main .material-symbols-outlined { font-size: 36px; }
+
+/* Extra Actions */
+.np-extra-actions {
+  display: flex; align-items: center; gap: 16px;
+}
+.np-extra-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  color: rgba(255,255,255,0.6); transition: all 0.2s;
+  font-size: 20px;
+}
+.np-extra-btn:hover { color: white; }
+.np-volume-row {
+  flex: 1; display: flex; align-items: center; gap: 10px;
+}
+.np-volume-bar {
+  flex: 1; height: 4px;
+  background: rgba(255,255,255,0.2); border-radius: 99px;
+  cursor: pointer;
+}
+.np-volume-fill {
+  height: 100%; border-radius: 99px;
+  background: rgba(255,255,255,0.7);
+}
+
+/* Artist Page */
+.artist-albums-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+.album-card {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 16px; padding: 14px;
+  cursor: pointer; transition: all 0.3s ease;
+}
+.album-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(79,70,229,0.15); }
+.album-card__thumb {
+  width: 100%; aspect-ratio: 1; border-radius: 12px;
+  overflow: hidden; margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--primary-fixed), var(--secondary-fixed));
+  display: flex; align-items: center; justify-content: center;
+}
+.album-card__thumb img { width:100%; height:100%; object-fit:cover; }
+.album-card__title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.album-card__sub { font-size:11px; color:var(--outline); }
+
+/* Artist card in search */
+.artist-card {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 16px; padding: 16px;
+  cursor: pointer; transition: all 0.3s ease;
+  text-align: center;
+}
+.artist-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(79,70,229,0.15); }
+.artist-card__thumb {
+  width: 80px; height: 80px; border-radius: 50%;
+  overflow: hidden; margin: 0 auto 10px;
+  background: linear-gradient(135deg, var(--primary-fixed), var(--secondary-fixed));
+  display: flex; align-items: center; justify-content: center;
+}
+.artist-card__thumb img { width:100%; height:100%; object-fit:cover; }

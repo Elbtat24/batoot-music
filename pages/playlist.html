@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="قائمة التشغيل — بطوط ميوزك">
+<title>قائمة التشغيل — بطوط ميوزك</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/design-system.css">
+<link rel="stylesheet" href="../css/app.css">
+<link rel="stylesheet" href="../css/nowplaying.css">
+<style>
+.playlist-hero {
+  background: linear-gradient(135deg, var(--primary-container), var(--secondary-container), #e040fb);
+  padding: 32px; display: flex; align-items: center; gap: 24px;
+  position: relative; overflow: hidden;
+}
+.playlist-hero::before { content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;background:rgba(255,255,255,0.1);border-radius:50%; }
+.playlist-hero-art {
+  width: 140px; height: 140px; border-radius: 16px;
+  overflow: hidden; flex-shrink: 0; position: relative; z-index: 1;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.playlist-hero-art img { width:100%;height:100%;object-fit:cover; }
+.playlist-hero-info { position: relative; z-index: 1; color: white; }
+.playlist-hero-type { font-size:12px;opacity:0.7;margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase; }
+.playlist-hero-name { font-size:28px;font-weight:800;line-height:1.2;margin-bottom:8px; }
+.playlist-hero-sub { font-size:14px;opacity:0.8; }
+.playlist-actions { display:flex;gap:12px;margin-top:16px; }
+.track-results { display:flex;flex-direction:column;gap:4px; }
+.empty-playlist { text-align:center;padding:80px 20px;color:var(--outline); }
+.empty-playlist .material-symbols-outlined { font-size:72px;display:block;margin-bottom:16px;opacity:0.3;font-variation-settings:'FILL' 1; }
+</style>
+</head>
+<body class="liquid-bg">
+<div class="ambient-blobs"></div>
+
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div class="topbar">
+      <button class="topbar-nav-btn" onclick="history.back()">
+        <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">arrow_back</span>
+      </button>
+      <span class="text-headline-sm" style="font-weight:700" id="topbar-pl-name">القائمة</span>
+      <div class="topbar-actions">
+        <div class="topbar-avatar">ب</div>
+      </div>
+    </div>
+
+    <div class="playlist-hero" id="playlist-hero">
+      <div class="playlist-hero-art" id="playlist-art">
+        <span class="material-symbols-outlined" style="font-size:48px;color:rgba(255,255,255,0.8);font-variation-settings:'FILL' 1">queue_music</span>
+      </div>
+      <div class="playlist-hero-info">
+        <div class="playlist-hero-type">قائمة التشغيل</div>
+        <div class="playlist-hero-name" id="pl-name">يتحمل...</div>
+        <div class="playlist-hero-sub" id="pl-sub">0 أغنية</div>
+        <div class="playlist-actions">
+          <button class="btn-primary" onclick="playAll()" id="play-btn" style="background:rgba(255,255,255,0.9);color:var(--primary);padding:10px 20px;font-size:13px;display:none">
+            <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">play_arrow</span>
+            تشغيل
+          </button>
+          <button class="btn-secondary" onclick="shuffleAll()" id="shuffle-btn" style="background:rgba(255,255,255,0.2);color:white;border-color:rgba(255,255,255,0.4);padding:10px 20px;font-size:13px;display:none">
+            <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">shuffle</span>
+            عشوائي
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div id="tracks-container" class="track-results">
+        <div class="empty-playlist" id="empty-msg">
+          <span class="material-symbols-outlined">queue_music</span>
+          <h3 class="text-headline-sm" style="margin-bottom:8px">القائمة فارغة</h3>
+          <p class="text-body-sm" style="color:var(--outline)">ابحث عن أغاني وأضفها لهذه القائمة</p>
+          <a href="search.html" class="btn-primary" style="display:inline-flex;margin-top:16px">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">search</span>
+            ابحث عن أغاني
+          </a>
+        </div>
+      </div>
+    </div>
+    <div style="height:40px"></div>
+  </div>
+</div>
+
+<div id="player-slot"></div>
+<div id="mobile-nav-slot"></div>
+
+<script src="../js/player.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+Layout.inject('library');
+
+const plId = new URLSearchParams(location.search).get('id');
+let playlist = null;
+
+function initPlaylist() {
+  if (!plId) { document.getElementById('pl-name').textContent = 'قائمة غير موجودة'; return; }
+  const state = BatootApp.getState();
+  playlist = state.playlists.find(p => p.id === plId);
+  if (!playlist) { document.getElementById('pl-name').textContent = 'قائمة غير موجودة'; return; }
+
+  document.title = playlist.name + ' — بطوط ميوزك';
+  document.getElementById('topbar-pl-name').textContent = playlist.name;
+  document.getElementById('pl-name').textContent = playlist.name;
+  document.getElementById('pl-sub').textContent = `${playlist.tracks.length} أغنية`;
+
+  // Hero art
+  const artEl = document.getElementById('playlist-art');
+  const imgs = playlist.tracks.filter(t => t.image).slice(0, 4);
+  if (imgs.length >= 4) {
+    artEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;width:100%;height:100%">${imgs.map(t=>`<img src="${t.image}" style="width:100%;height:100%;object-fit:cover">`).join('')}</div>`;
+  } else if (imgs.length >= 1) {
+    artEl.innerHTML = `<img src="${imgs[0].image}" style="width:100%;height:100%;object-fit:cover">`;
+  }
+
+  const container = document.getElementById('tracks-container');
+  if (!playlist.tracks.length) {
+    container.innerHTML = `<div class="empty-playlist"><span class="material-symbols-outlined">queue_music</span><h3 class="text-headline-sm" style="margin-bottom:8px">القائمة فارغة</h3><p class="text-body-sm" style="color:var(--outline)">ابحث عن أغاني وأضفها لهذه القائمة</p><a href="search.html" class="btn-primary" style="display:inline-flex;margin-top:16px"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">search</span>ابحث عن أغاني</a></div>`;
+    return;
+  }
+
+  BatootApp.cacheTracks(playlist.tracks);
+  container.innerHTML = BatootApp.renderTrackRows(playlist.tracks);
+  document.getElementById('play-btn').style.display = '';
+  document.getElementById('shuffle-btn').style.display = '';
+}
+
+function playAll() {
+  if (!playlist?.tracks.length) return;
+  BatootApp.playWithQueue(playlist.tracks[0].id, playlist.tracks);
+}
+function shuffleAll() {
+  if (!playlist?.tracks.length) return;
+  const shuffled = [...playlist.tracks].sort(() => Math.random() - 0.5);
+  BatootApp.playWithQueue(shuffled[0].id, shuffled);
+}
+
+initPlaylist();
+</script>
+</body>
+</html>

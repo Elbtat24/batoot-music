@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="اكتشف أحدث الأغاني والفنانين على بطوط ميوزك">
+<title>الرئيسية — بطوط ميوزك</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/design-system.css">
+<link rel="stylesheet" href="../css/app.css">
+<link rel="stylesheet" href="../css/nowplaying.css">
+<style>
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; }
+@media(max-width:480px){ .cards-grid{ grid-template-columns:repeat(2,1fr); } }
+
+.greeting-banner {
+  border-radius:20px;
+  background:linear-gradient(135deg,var(--primary-container) 0%,var(--secondary-container) 60%,#e040fb 100%);
+  padding:32px; color:white; margin-bottom:28px;
+  position:relative; overflow:hidden; min-height:140px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.greeting-banner::before { content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px; background:rgba(255,255,255,0.1); border-radius:50%; }
+.greeting-banner::after  { content:''; position:absolute; bottom:-60px; left:30px; width:160px; height:160px; background:rgba(255,255,255,0.06); border-radius:50%; }
+.banner-text { position:relative; z-index:1; }
+.banner-icon { width:72px;height:72px;border-radius:20px;background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:36px;color:white;position:relative;z-index:1;animation:float 4s ease-in-out infinite;flex-shrink:0; }
+
+.quick-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:36px; }
+.quick-item { display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(255,255,255,0.6);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);cursor:pointer;transition:all 0.2s ease; }
+.quick-item:hover { background:rgba(255,255,255,0.85);transform:translateY(-2px);box-shadow:0 6px 20px rgba(79,70,229,0.12); }
+.quick-item-thumb { width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--primary-fixed),var(--secondary-fixed));display:flex;align-items:center;justify-content:center; }
+.quick-item-thumb img { width:100%;height:100%;object-fit:cover; }
+.quick-item-name { font-size:14px;font-weight:700;color:var(--on-surface); }
+
+.artist-row-scroll { display:flex; gap:16px; overflow-x:auto; padding-bottom:12px; scrollbar-width:none; }
+.artist-row-scroll::-webkit-scrollbar { display:none; }
+.artist-chip {
+  flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:8px;
+  cursor:pointer; transition:all 0.3s; width:90px;
+}
+.artist-chip:hover { transform:translateY(-4px); }
+.artist-chip__thumb {
+  width:72px; height:72px; border-radius:50%;
+  overflow:hidden; background:linear-gradient(135deg,var(--primary-fixed),var(--secondary-fixed));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 16px rgba(79,70,229,0.15);
+}
+.artist-chip__thumb img { width:100%;height:100%;object-fit:cover; }
+.artist-chip__name { font-size:12px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%; }
+</style>
+</head>
+<body class="liquid-bg">
+<div class="ambient-blobs"></div>
+
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-search">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">search</span>
+        <input type="text" placeholder="ابحث عن أغنية، فنان، ألبوم..." id="topbar-search-input"
+               onkeydown="if(event.key==='Enter')goSearch(this.value)">
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-avatar" title="الملف الشخصي">ب</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Greeting -->
+      <div class="greeting-banner">
+        <div class="banner-text">
+          <div style="font-size:13px;opacity:0.85;margin-bottom:6px">مرحباً 👋</div>
+          <h1 class="text-headline-xl" style="color:white;margin-bottom:8px">اكتشف الجديد</h1>
+          <p style="font-size:14px;opacity:0.8">استمع لأحدث الأغاني الأكثر شعبية الآن</p>
+        </div>
+        <div class="banner-icon">
+          <span class="material-symbols-outlined" style="font-size:36px;font-variation-settings:'FILL' 1">headphones</span>
+        </div>
+      </div>
+
+      <!-- Recently Played -->
+      <div class="section-header"><h2>مشغلة مؤخراً</h2></div>
+      <div class="quick-items" id="recent-list">
+        <div class="quick-item" style="cursor:default;opacity:0.6">
+          <div class="quick-item-thumb">
+            <span class="material-symbols-outlined" style="color:var(--outline);font-variation-settings:'FILL' 1">history</span>
+          </div>
+          <div class="quick-item-name" style="color:var(--outline)">لم تشغل أي أغنية بعد</div>
+        </div>
+      </div>
+
+      <!-- Genre Chips -->
+      <div id="genre-chips" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none;margin-bottom:28px"></div>
+
+      <!-- Trending -->
+      <div class="section-header">
+        <h2>🔥 الأكثر شعبية</h2>
+        <a href="#" onclick="loadAllSection('trending');return false">عرض الكل</a>
+      </div>
+      <div class="cards-grid" id="trending-grid">
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px" id="trending-skel">
+          ${Array(8).fill(0).map(()=>`<div><div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div><div class="skeleton" style="height:14px;margin-top:10px;border-radius:6px"></div><div class="skeleton" style="height:12px;margin-top:6px;width:70%;border-radius:6px"></div></div>`).join('')}
+        </div>
+      </div>
+
+      <div style="height:40px"></div>
+
+      <!-- Artists -->
+      <div class="section-header"><h2>🎤 فنانون مميزون</h2></div>
+      <div class="artist-row-scroll" id="artists-row">
+        ${Array(6).fill(0).map(()=>`<div class="artist-chip"><div class="skeleton" style="width:72px;height:72px;border-radius:50%"></div><div class="skeleton" style="height:12px;width:70px;border-radius:6px;margin-top:6px"></div></div>`).join('')}
+      </div>
+
+      <div style="height:40px"></div>
+
+      <!-- New Releases -->
+      <div class="section-header">
+        <h2>✨ إصدارات جديدة</h2>
+        <a href="#" onclick="loadAllSection('new');return false">عرض الكل</a>
+      </div>
+      <div class="cards-grid" id="new-grid">
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px">
+          ${Array(8).fill(0).map(()=>`<div><div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div><div class="skeleton" style="height:14px;margin-top:10px;border-radius:6px"></div><div class="skeleton" style="height:12px;margin-top:6px;width:70%;border-radius:6px"></div></div>`).join('')}
+        </div>
+      </div>
+
+      <div style="height:40px"></div>
+
+      <!-- Genre Section -->
+      <div class="section-header">
+        <h2 id="genre-title">🎵 موسيقى متنوعة</h2>
+      </div>
+      <div class="cards-grid" id="genre-grid">
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px">
+          ${Array(8).fill(0).map(()=>`<div><div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div><div class="skeleton" style="height:14px;margin-top:10px;border-radius:6px"></div></div>`).join('')}
+        </div>
+      </div>
+
+      <div style="height:32px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="player-slot"></div>
+<div id="mobile-nav-slot"></div>
+
+<script src="../js/player.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+Layout.inject('home');
+
+const GENRES = [
+  { label:'الكل',      tag:'music',       icon:'🎵' },
+  { label:'بوب',       tag:'pop music',   icon:'🎤' },
+  { label:'روك',       tag:'rock music',  icon:'🎸' },
+  { label:'إلكترونيك', tag:'electronic',  icon:'🎛️' },
+  { label:'جاز',       tag:'jazz',        icon:'🎺' },
+  { label:'كلاسيكي',   tag:'classical',   icon:'🎻' },
+  { label:'هيب هوب',   tag:'hip hop',     icon:'🎧' },
+  { label:'R&B',       tag:'rnb r&b',     icon:'🎶' },
+];
+
+const FEATURED_ARTISTS = [
+  'Amr Diab', 'Tamer Hosny', 'Nancy Ajram', 'Elissa',
+  'Mohamed Hamaki', 'Cairokee', 'Mashrou Leila', 'Fairouz',
+];
+
+let activeGenreTag = 'music';
+let allTracks = { trending: [], new: [], genre: [] };
+
+function buildGenreChips() {
+  const c = document.getElementById('genre-chips');
+  c.innerHTML = GENRES.map((g, i) => `
+    <button class="genre-chip ${i===0?'active':''}" onclick="onGenreClick(this,'${g.tag}','${g.label}')">
+      ${g.icon} ${g.label}
+    </button>
+  `).join('');
+}
+
+function onGenreClick(btn, tag, label) {
+  document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  activeGenreTag = tag;
+  document.getElementById('genre-title').textContent = `🎵 ${label}`;
+  loadGenre(tag);
+}
+
+async function loadGenre(tag) {
+  const grid = document.getElementById('genre-grid');
+  grid.innerHTML = skeletonCards(8);
+  try {
+    const tracks = await BatootApp.getYTByGenre(tag);
+    allTracks.genre = tracks;
+    BatootApp.cacheTracks(tracks);
+    renderCards('genre-grid', tracks.slice(0, 8));
+  } catch(e) { showErr('genre-grid'); }
+}
+
+async function initHome() {
+  buildGenreChips();
+  updateRecentList();
+
+  try {
+    const [trending, fresh] = await Promise.all([
+      BatootApp.getYTTrending(),
+      BatootApp.searchYouTube('new music 2024'),
+    ]);
+    allTracks.trending = trending;
+    allTracks.new = fresh;
+    BatootApp.cacheTracks([...trending, ...fresh]);
+    renderCards('trending-grid', trending.slice(0, 8));
+    renderCards('new-grid', fresh.slice(0, 8));
+  } catch(e) { showErr('trending-grid'); showErr('new-grid'); }
+
+  try {
+    const genreTracks = await BatootApp.getYTByGenre('pop music');
+    allTracks.genre = genreTracks;
+    BatootApp.cacheTracks(genreTracks);
+    renderCards('genre-grid', genreTracks.slice(0, 8));
+    document.getElementById('genre-title').textContent = '🎵 بوب';
+  } catch(e) { showErr('genre-grid'); }
+
+  loadArtists();
+}
+
+async function loadArtists() {
+  const row = document.getElementById('artists-row');
+  const results = await Promise.allSettled(
+    FEATURED_ARTISTS.map(name => BatootApp.searchYouTube(name + ' official', 1))
+  );
+  const artists = results
+    .filter(r => r.status === 'fulfilled' && r.value.length)
+    .map((r, i) => ({ name: FEATURED_ARTISTS[i], image: r.value[0].image }));
+
+  row.innerHTML = artists.map(a => `
+    <div class="artist-chip" onclick="goToArtist('${encodeURIComponent(a.name)}')">
+      <div class="artist-chip__thumb">
+        ${a.image ? `<img src="${a.image}" alt="${a.name}" loading="lazy">` : `<span class="material-symbols-outlined" style="font-size:28px;color:var(--primary-container);font-variation-settings:'FILL' 1">person</span>`}
+      </div>
+      <div class="artist-chip__name">${a.name}</div>
+    </div>
+  `).join('');
+}
+
+function goToArtist(name) {
+  window.location.href = `artist.html?name=${name}`;
+}
+
+function renderCards(gridId, tracks) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  if (!tracks.length) { grid.innerHTML = `<div style="color:var(--outline);font-size:14px;grid-column:1/-1;padding:20px">لا توجد نتائج</div>`; return; }
+  grid.innerHTML = BatootApp.renderMusicCards(tracks);
+}
+
+function showErr(gridId) {
+  const g = document.getElementById(gridId);
+  if (g) g.innerHTML = `<div style="color:var(--outline);font-size:13px;grid-column:1/-1;padding:16px">⚠️ تعذر تحميل الأغاني. تحقق من الاتصال.</div>`;
+}
+
+function skeletonCards(n) {
+  return Array(n).fill(0).map(()=>`<div><div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div><div class="skeleton" style="height:14px;margin-top:10px;border-radius:6px"></div></div>`).join('');
+}
+
+function updateRecentList() {
+  const state = BatootApp.getState();
+  const recent = state.history.slice(0, 6);
+  const c = document.getElementById('recent-list');
+  if (!c || !recent.length) return;
+  c.innerHTML = recent.map(t => `
+    <div class="quick-item" onclick="BatootApp.play('${t.id}')">
+      <div class="quick-item-thumb">
+        ${t.image ? `<img src="${t.image}" alt="${t.title}">` : `<span class="material-symbols-outlined" style="color:var(--primary-container);font-variation-settings:'FILL' 1">music_note</span>`}
+      </div>
+      <div>
+        <div class="quick-item-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">${t.title}</div>
+        <div style="font-size:11px;color:var(--outline)">${t.artist}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function goSearch(q) {
+  if (q.trim()) window.location.href = `search.html?q=${encodeURIComponent(q.trim())}`;
+}
+
+function loadAllSection(type) {
+  const tracks = allTracks[type] || [];
+  if (!tracks.length) return;
+  renderCards(type + '-grid', tracks);
+}
+
+initHome();
+</script>
+</body>
+</html>
