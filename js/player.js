@@ -7,7 +7,7 @@
 // CONFIG
 // ─────────────────────────────────────────────
 const CONFIG = {
-  YT_KEY: 'AIzaSyAXcxT0bFiSPjdPSQQ1WC5fbz-vC1P-6GM',
+  YT_KEY: 'AIzaSyBZvR8iHtQp0k8FTPDEDXLkQmCZpTZ3_So',
   YT_BASE: 'https://www.googleapis.com/youtube/v3',
   LIMIT: 20,
 };
