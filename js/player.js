@@ -7,7 +7,13 @@
 // CONFIG
 // ─────────────────────────────────────────────
 const CONFIG = {
-  YT_KEY: 'AIzaSyAXcxT0bFiSPjdPSQQ1WC5fbz-vC1P-6GM',
+  // تم وضع المفاتيح الثلاثة في مصفوفة
+  YT_KEYS: [
+    'AIzaSyC86mQ8O79Rbc_xG2myL9236mdAz8iBDG8',
+    'AIzaSyAXcxT0bFiSPjdPSQQ1WC5fbz-vC1P-6GM',
+    'AIzaSyBZvR8iHtQp0k8FTPDEDXLkQmCZpTZ3_So'
+  ],
+  currentKeyIndex: 0, // تتبع المفتاح الحالي
   YT_BASE: 'https://www.googleapis.com/youtube/v3',
   LIMIT: 20,
 };
@@ -312,13 +318,50 @@ function updateMediaSession(track) {
 }
 
 // ─────────────────────────────────────────────
-// YOUTUBE DATA API v3
+// YOUTUBE DATA API v3 (تم التعديل هنا)
 // ─────────────────────────────────────────────
 async function ytFetch(endpoint, params) {
-  const q = new URLSearchParams({ key: CONFIG.YT_KEY, ...params }).toString();
-  const res = await fetch(`${CONFIG.YT_BASE}/${endpoint}?${q}`);
-  if (!res.ok) throw new Error('YouTube API error ' + res.status);
-  return res.json();
+  let attempts = 0;
+  const maxAttempts = CONFIG.YT_KEYS.length;
+
+  while (attempts < maxAttempts) {
+    // جلب المفتاح الحالي
+    const currentKey = CONFIG.YT_KEYS[CONFIG.currentKeyIndex];
+    const q = new URLSearchParams({ key: currentKey, ...params }).toString();
+    const url = `${CONFIG.YT_BASE}/${endpoint}?${q}`;
+
+    try {
+      const res = await fetch(url);
+      
+      // إذا نجح الاتصال، قم بإرجاع البيانات
+      if (res.ok) {
+        return await res.json();
+      }
+      
+      // إذا فشل (مثلاً بسبب انتهاء الكوتة)، ارمي خطأ ليتم التقاطه في الـ catch
+      throw new Error(`YouTube API error ${res.status}`);
+
+    } catch (error) {
+      console.warn(`Key at index ${CONFIG.currentKeyIndex} failed. Trying next...`);
+      
+      // الانتقال للمفتاح التالي
+      CONFIG.currentKeyIndex++;
+      
+      // إذا وصلنا لآخر مصفوفة المفاتيح، نعود للمفتاح الأول 
+      // (لكن لن يتم عمل Loop لا نهائي بفضل متغير attempts)
+      if (CONFIG.currentKeyIndex >= CONFIG.YT_KEYS.length) {
+        CONFIG.currentKeyIndex = 0; 
+      }
+      
+      attempts++;
+      
+      // إذا جربنا كل المفاتيح المتاحة وفشلت كلها
+      if (attempts >= maxAttempts) {
+        console.error("All API keys have been exhausted.");
+        throw new Error("All YouTube API keys exhausted or failed.");
+      }
+    }
+  }
 }
 
 function mapYTVideo(item) {
@@ -517,77 +560,4 @@ function getTrack(id) { return trackCache[id] || State.queue.find(t => t.id === 
 
 // ─────────────────────────────────────────────
 // ADD TO PLAYLIST MODAL
-// ─────────────────────────────────────────────
-function openAddToPlaylist(trackId) {
-  const track = getTrack(trackId);
-  if (!track) return;
-  const modal = document.getElementById('add-to-playlist-modal');
-  if (!modal) return;
-  const list = document.getElementById('atp-list');
-  if (list) {
-    const pls = State.playlists;
-    if (!pls.length) {
-      list.innerHTML = `<div style="text-align:center;color:var(--outline);padding:20px">لا توجد قوائم. أنشئ قائمة أولاً.</div>`;
-    } else {
-      list.innerHTML = pls.map(pl => `
-        <div class="track-row" onclick="BatootApp.addToPlaylist('${pl.id}','${trackId}');document.getElementById('add-to-playlist-modal').classList.remove('open')">
-          <div class="track-row__thumb" style="background:var(--surface-container);display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="color:var(--primary-container);font-variation-settings:'FILL' 1">queue_music</span>
-          </div>
-          <div class="track-row__info">
-            <div class="track-row__title">${escHtml(pl.name)}</div>
-            <div class="track-row__artist">${pl.tracks.length} أغنية</div>
-          </div>
-        </div>
-      `).join('');
-    }
-  }
-  modal.classList.add('open');
-}
-
-// ─────────────────────────────────────────────
-// PUBLIC API
-// ─────────────────────────────────────────────
-window.BatootApp = {
-  play(id) {
-    const t = getTrack(id);
-    if (t) playTrack(t, Object.values(trackCache));
-  },
-  playWithQueue(id, queue) {
-    const t = getTrack(id);
-    if (t) playTrack(t, queue);
-  },
-  togglePlay,
-  next: nextTrack,
-  prev: prevTrack,
-  seek: pct => seekTo(pct),
-  setVolume,
-  toggleShuffle,
-  toggleRepeat,
-  toggleLike: id => toggleLike(id),
-  isLiked: id => State.liked.has(String(id)),
-  getState: () => State,
-  formatTime,
-  renderMusicCards,
-  renderTrackRows,
-  // YouTube API
-  searchYouTube,
-  getYTTrending,
-  getYTByGenre,
-  getArtistTracks,
-  getArtistAlbums,
-  getPlaylistTracks,
-  // Cache
-  cacheTracks, cacheTrack, getTrack,
-  // Playlists
-  createPlaylist,
-  addToPlaylist(plId, trackId) {
-    const t = getTrack(trackId);
-    if (t) addToPlaylist(plId, t);
-  },
-  savePlaylists,
-  openAddToPlaylist,
-  escHtml,
-};
-
-if (typeof module !== 'undefined') module.exports = window.BatootApp;
+// ────────────────────────
