@@ -7,14 +7,7 @@
 // CONFIG
 // ─────────────────────────────────────────────
 const CONFIG = {
-  // مصفوفة تحتوي على المفاتيح الثلاثة
-  YT_KEYS: [
-    'AIzaSyC86mQ8O79Rbc_xG2myL9236mdAz8iBDG8',
-    'AIzaSyAXcxT0bFiSPjdPSQQ1WC5fbz-vC1P-6GM',
-    'AIzaSyBZvR8iHtQp0k8FTPDEDXLkQmCZpTZ3_So'
-  ],
-  // سحب الرقم من ذاكرة المتصفح، ولو مش موجود يبدأ من 0 (الأول)
-  currentKeyIndex: parseInt(localStorage.getItem('batoot_api_key_index') || '0'),
+  YT_KEY: 'AIzaSyAXcxT0bFiSPjdPSQQ1WC5fbz-vC1P-6GM',
   YT_BASE: 'https://www.googleapis.com/youtube/v3',
   LIMIT: 20,
 };
@@ -319,58 +312,13 @@ function updateMediaSession(track) {
 }
 
 // ─────────────────────────────────────────────
-// YOUTUBE DATA API v3 (معدلة للحفظ في المتصفح)
+// YOUTUBE DATA API v3
 // ─────────────────────────────────────────────
 async function ytFetch(endpoint, params) {
-  let attempts = 0;
-  const maxAttempts = CONFIG.YT_KEYS.length;
-
-  while (attempts < maxAttempts) {
-    // تحديث الواجهة عشان تعرض الرقم الحالي
-    updateApiStatusUI(); 
-    
-    // استخدمنا trim عشان نشيل أي مسافات منسوخة بالغلط
-    const currentKey = CONFIG.YT_KEYS[CONFIG.currentKeyIndex].trim();
-    const q = new URLSearchParams({ key: currentKey, ...params }).toString();
-    const url = `${CONFIG.YT_BASE}/${endpoint}?${q}`;
-
-    try {
-      const res = await fetch(url);
-      
-      if (res.ok) {
-        return await res.json();
-      }
-      
-      // لو الرد مش ok (الكوته خلصت مثلاً)، بنرمي خطأ عشان ينقل على اللي بعده
-      throw new Error(`API Error: ${res.status}`);
-
-    } catch (error) {
-      console.warn(`API ${CONFIG.currentKeyIndex + 1} Failed! Switching...`);
-      
-      // الانتقال للمفتاح التالي
-      CONFIG.currentKeyIndex++;
-      if (CONFIG.currentKeyIndex >= CONFIG.YT_KEYS.length) {
-        CONFIG.currentKeyIndex = 0; 
-      }
-      
-      // حفظ الرقم الجديد في المتصفح
-      localStorage.setItem('batoot_api_key_index', CONFIG.currentKeyIndex);
-      updateApiStatusUI();
-      
-      attempts++;
-      
-      // لو جربنا التلاتة وكلهم بايظين
-      if (attempts >= maxAttempts) {
-        const statusEl = document.getElementById('api-key-status');
-        if (statusEl) {
-          statusEl.style.backgroundColor = '#ff4444'; // هيقلب أحمر
-          statusEl.style.color = '#fff';
-          statusEl.textContent = 'All APIs Exhausted!';
-        }
-        throw new Error("All YouTube APIs failed.");
-      }
-    }
-  }
+  const q = new URLSearchParams({ key: CONFIG.YT_KEY, ...params }).toString();
+  const res = await fetch(`${CONFIG.YT_BASE}/${endpoint}?${q}`);
+  if (!res.ok) throw new Error('YouTube API error ' + res.status);
+  return res.json();
 }
 
 function mapYTVideo(item) {
@@ -598,39 +546,48 @@ function openAddToPlaylist(trackId) {
 }
 
 // ─────────────────────────────────────────────
-// API STATUS UI (مؤشر لمعرفة الـ API الحالي)
+// PUBLIC API
 // ─────────────────────────────────────────────
-function updateApiStatusUI() {
-  let statusEl = document.getElementById('api-key-status');
-  
-  // لو المربع مش موجود، هننشئه ونضيفه في الصفحة
-  if (!statusEl) {
-    statusEl = document.createElement('div');
-    statusEl.id = 'api-key-status';
-    // تنسيق المربع (عائم في أسفل يسار الشاشة)
-    statusEl.style.cssText = `
-      position: fixed; 
-      bottom: 20px; 
-      left: 20px; 
-      background: rgba(0, 0, 0, 0.8); 
-      color: #00ff00; 
-      padding: 8px 12px; 
-      border-radius: 8px; 
-      font-size: 14px; 
-      font-weight: bold;
-      z-index: 9999; 
-      font-family: sans-serif;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-      direction: ltr;
-    `;
-    document.body.appendChild(statusEl);
-  }
-  
-  // تحديث النص (رقم الـ API الحالي)
-  const currentNum = CONFIG.currentKeyIndex + 1;
-  const totalKeys = CONFIG.YT_KEYS.length;
-  statusEl.textContent = `API Key: ${currentNum} / ${totalKeys}`;
-}
+window.BatootApp = {
+  play(id) {
+    const t = getTrack(id);
+    if (t) playTrack(t, Object.values(trackCache));
+  },
+  playWithQueue(id, queue) {
+    const t = getTrack(id);
+    if (t) playTrack(t, queue);
+  },
+  togglePlay,
+  next: nextTrack,
+  prev: prevTrack,
+  seek: pct => seekTo(pct),
+  setVolume,
+  toggleShuffle,
+  toggleRepeat,
+  toggleLike: id => toggleLike(id),
+  isLiked: id => State.liked.has(String(id)),
+  getState: () => State,
+  formatTime,
+  renderMusicCards,
+  renderTrackRows,
+  // YouTube API
+  searchYouTube,
+  getYTTrending,
+  getYTByGenre,
+  getArtistTracks,
+  getArtistAlbums,
+  getPlaylistTracks,
+  // Cache
+  cacheTracks, cacheTrack, getTrack,
+  // Playlists
+  createPlaylist,
+  addToPlaylist(plId, trackId) {
+    const t = getTrack(trackId);
+    if (t) addToPlaylist(plId, t);
+  },
+  savePlaylists,
+  openAddToPlaylist,
+  escHtml,
+};
 
-// استدعاء الدالة لأول مرة عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', updateApiStatusUI);
+if (typeof module !== 'undefined') module.exports = window.BatootApp;
