@@ -13,7 +13,8 @@ const CONFIG = {
     'AIzaSyAXcxT0bFiSPjdPSQQ1WC5fbz-vC1P-6GM',
     'AIzaSyBZvR8iHtQp0k8FTPDEDXLkQmCZpTZ3_So'
   ],
-  currentKeyIndex: 0, // تتبع المفتاح الحالي
+  // سحب الرقم من ذاكرة المتصفح، ولو مش موجود يبدأ من 0 (الأول)
+  currentKeyIndex: parseInt(localStorage.getItem('batoot_api_key_index') || '0'),
   YT_BASE: 'https://www.googleapis.com/youtube/v3',
   LIMIT: 20,
 };
@@ -318,17 +319,18 @@ function updateMediaSession(track) {
 }
 
 // ─────────────────────────────────────────────
-// YOUTUBE DATA API v3 (معدلة للتبديل بين المفاتيح وعرض الحالة)
+// YOUTUBE DATA API v3 (معدلة للحفظ في المتصفح)
 // ─────────────────────────────────────────────
 async function ytFetch(endpoint, params) {
-  // التأكد من تحديث المؤشر قبل بدء الطلب
-  updateApiStatusUI(); 
-  
   let attempts = 0;
   const maxAttempts = CONFIG.YT_KEYS.length;
 
   while (attempts < maxAttempts) {
-    const currentKey = CONFIG.YT_KEYS[CONFIG.currentKeyIndex];
+    // تحديث الواجهة عشان تعرض الرقم الحالي
+    updateApiStatusUI(); 
+    
+    // استخدمنا trim عشان نشيل أي مسافات منسوخة بالغلط
+    const currentKey = CONFIG.YT_KEYS[CONFIG.currentKeyIndex].trim();
     const q = new URLSearchParams({ key: currentKey, ...params }).toString();
     const url = `${CONFIG.YT_BASE}/${endpoint}?${q}`;
 
@@ -339,32 +341,33 @@ async function ytFetch(endpoint, params) {
         return await res.json();
       }
       
-      throw new Error(`YouTube API error ${res.status}`);
+      // لو الرد مش ok (الكوته خلصت مثلاً)، بنرمي خطأ عشان ينقل على اللي بعده
+      throw new Error(`API Error: ${res.status}`);
 
     } catch (error) {
-      console.warn(`Key at index ${CONFIG.currentKeyIndex} failed. Trying next...`);
+      console.warn(`API ${CONFIG.currentKeyIndex + 1} Failed! Switching...`);
       
       // الانتقال للمفتاح التالي
       CONFIG.currentKeyIndex++;
-      
       if (CONFIG.currentKeyIndex >= CONFIG.YT_KEYS.length) {
         CONFIG.currentKeyIndex = 0; 
       }
       
-      // تحديث الرقم في الشاشة فوراً بعد تغيير المفتاح
-      updateApiStatusUI(); 
+      // حفظ الرقم الجديد في المتصفح
+      localStorage.setItem('batoot_api_key_index', CONFIG.currentKeyIndex);
+      updateApiStatusUI();
       
       attempts++;
       
+      // لو جربنا التلاتة وكلهم بايظين
       if (attempts >= maxAttempts) {
-        // لو كل الـ APIs خلصت الكوتة بتاعتها، هنعرض رسالة حمراء
         const statusEl = document.getElementById('api-key-status');
         if (statusEl) {
-          statusEl.style.color = '#ff4444';
+          statusEl.style.backgroundColor = '#ff4444'; // هيقلب أحمر
+          statusEl.style.color = '#fff';
           statusEl.textContent = 'All APIs Exhausted!';
         }
-        console.error("All API keys have been exhausted.");
-        throw new Error("All YouTube API keys exhausted or failed.");
+        throw new Error("All YouTube APIs failed.");
       }
     }
   }
